@@ -2,8 +2,8 @@ namespace Massive
 {
 	public struct Hierarchy
 	{
-		public ListHandle<Entity> Childs;
+		public ListHandle<Entifier> Childs;
 
-		public Entity Parent;
+		public Entifier Parent;
 	}
 }

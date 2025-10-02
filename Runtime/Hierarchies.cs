@@ -11,9 +11,9 @@ namespace Massive
 
 		public DataSet<Hierarchy> Components { get; }
 
-		public AutoAllocator<Entity> Allocator { get; }
+		public AutoAllocator<Entifier> Allocator { get; }
 
-		public Hierarchies(DataSet<Hierarchy> components, Entities entities, AutoAllocator<Entity> allocator)
+		public Hierarchies(DataSet<Hierarchy> components, Entities entities, AutoAllocator<Entifier> allocator)
 		{
 			Components = components;
 			Entities = entities;
@@ -25,9 +25,9 @@ namespace Massive
 			{
 				ref var hierarchy = ref Components.Get(id);
 
-				if (hierarchy.Parent != Entity.Dead)
+				if (hierarchy.Parent != Entifier.Dead)
 				{
-					RemoveChild(hierarchy.Parent, Entities.GetEntity(id));
+					RemoveChild(hierarchy.Parent, Entities.GetEntifier(id));
 				}
 
 				var childs = hierarchy.Childs.In(Allocator);
@@ -35,7 +35,7 @@ namespace Massive
 				foreach (var child in childs)
 				{
 					ref var childHierarchy = ref Components.Get(child.Id);
-					childHierarchy.Parent = Entity.Dead;
+					childHierarchy.Parent = Entifier.Dead;
 				}
 
 				childs.Free();
@@ -43,13 +43,13 @@ namespace Massive
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public bool AddHierarchy(Entity entity)
+		public bool AddHierarchy(Entifier entifier)
 		{
-			EntityNotAliveException.ThrowIfEntityDead(Entities, entity);
+			EntityNotAliveException.ThrowIfEntityDead(Entities, entifier);
 
-			if (Components.Add(entity.Id))
+			if (Components.Add(entifier.Id))
 			{
-				Components.Get(entity.Id).Childs = Allocator.AllocList();
+				Components.Get(entifier.Id).Childs = Allocator.AllocList();
 				return true;
 			}
 
@@ -57,7 +57,7 @@ namespace Massive
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void AddChild(Entity parent, Entity child)
+		public void AddChild(Entifier parent, Entifier child)
 		{
 			EntityNotAliveException.ThrowIfEntityDead(Entities, parent);
 			EntityNotAliveException.ThrowIfEntityDead(Entities, child);
@@ -69,7 +69,7 @@ namespace Massive
 				return;
 			}
 
-			if (childHierarchy.Parent != Entity.Dead)
+			if (childHierarchy.Parent != Entifier.Dead)
 			{
 				RemoveChild(childHierarchy.Parent, child);
 			}
@@ -80,7 +80,7 @@ namespace Massive
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void RemoveChild(Entity parent, Entity child)
+		public void RemoveChild(Entifier parent, Entifier child)
 		{
 			EntityNotAliveException.ThrowIfEntityDead(Entities, parent);
 			EntityNotAliveException.ThrowIfEntityDead(Entities, child);
@@ -89,7 +89,7 @@ namespace Massive
 
 			if (childs.Remove(child))
 			{
-				Components.Get(child.Id).Parent = Entity.Dead;
+				Components.Get(child.Id).Parent = Entifier.Dead;
 			}
 		}
 	}
