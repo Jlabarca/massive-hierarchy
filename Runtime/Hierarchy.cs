@@ -1,8 +1,8 @@
 namespace Massive
 {
-	public struct Hierarchy
+	public struct Hierarchy : IAutoFree<Hierarchy>
 	{
-		public ListHandle<Entifier> Childs;
+		public ListModel<Entifier> Childs;
 
 		public Entifier Parent;
 	}

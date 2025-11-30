@@ -11,9 +11,9 @@ namespace Massive
 
 		public DataSet<Hierarchy> Components { get; }
 
-		public AutoAllocator<Entifier> Allocator { get; }
+		public Allocator Allocator { get; }
 
-		public Hierarchies(DataSet<Hierarchy> components, Entities entities, AutoAllocator<Entifier> allocator)
+		public Hierarchies(DataSet<Hierarchy> components, Entities entities, Allocator allocator)
 		{
 			Components = components;
 			Entities = entities;
@@ -30,15 +30,11 @@ namespace Massive
 					RemoveChild(hierarchy.Parent, Entities.GetEntifier(id));
 				}
 
-				var childs = hierarchy.Childs.In(Allocator);
-
-				foreach (var child in childs)
+				foreach (var child in hierarchy.Childs.GetEnumerator(Allocator))
 				{
 					ref var childHierarchy = ref Components.Get(child.Id);
 					childHierarchy.Parent = Entifier.Dead;
 				}
-
-				childs.Free();
 			}
 		}
 
@@ -49,7 +45,7 @@ namespace Massive
 
 			if (Components.Add(entifier.Id))
 			{
-				Components.Get(entifier.Id).Childs = Allocator.AllocList();
+				Components.Get(entifier.Id).Childs = Allocator.AllocListModel<Entifier>();
 				return true;
 			}
 
@@ -76,7 +72,7 @@ namespace Massive
 
 			childHierarchy.Parent = parent;
 
-			Components.Get(parent.Id).Childs.In(Allocator).Add(child);
+			Components.Get(parent.Id).Childs.Add(Allocator, child);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -85,9 +81,7 @@ namespace Massive
 			EntityNotAliveException.ThrowIfEntityDead(Entities, parent);
 			EntityNotAliveException.ThrowIfEntityDead(Entities, child);
 
-			var childs = Components.Get(parent.Id).Childs.In(Allocator);
-
-			if (childs.Remove(child))
+			if (Components.Get(parent.Id).Childs.Remove(Allocator,child))
 			{
 				Components.Get(child.Id).Parent = Entifier.Dead;
 			}
